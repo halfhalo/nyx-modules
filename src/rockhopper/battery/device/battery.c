@@ -80,42 +80,31 @@ int battery_percent(void)
 {
     int now, full;
     int capacity;
+    if (g_file_test(BATTERY_SYSFS_PATH "charge_full", G_FILE_TEST_EXISTS) &&
+                     g_file_test(BATTERY_SYSFS_PATH "charge_now", G_FILE_TEST_EXISTS))
+            {
+                if (FileGetInt(BATTERY_SYSFS_PATH "charge_full", &full) < 0)
+                {
+                    nyx_error("Could not read charge_full");
+                    return -1;
+                }
+                    
 
-    /* try capacity node first but keep in mind it's not supported by all power class
-     * devices */
-    if (!g_file_test(BATTERY_SYSFS_PATH "capacity", G_FILE_TEST_EXISTS) ||
-        FileGetInt(BATTERY_SYSFS_PATH "capacity", &capacity) < 0)
-    {
-        /* capacity node is not available so next try is energy_now/energy_full */
-        if (g_file_test(BATTERY_SYSFS_PATH "energy_now", G_FILE_TEST_EXISTS) &&
-            g_file_test(BATTERY_SYSFS_PATH "energy_full", G_FILE_TEST_EXISTS))
-        {
-            if (FileGetInt(BATTERY_SYSFS_PATH "energy_now", &now) < 0)
+                if (FileGetInt(BATTERY_SYSFS_PATH "charge_now", &now) < 0)
+                {
+                    nyx_error("Could not read charge_now");
+                    return -1; 
+                }
+                   
+                
+                capacity = (now / full);
+            }
+            else
+            {
+                nyx_error("Charge full or Charge now does not exist");
+                
                 return -1;
-
-            if (FileGetInt(BATTERY_SYSFS_PATH "energy_full", &full) < 0)
-                return -1;
-
-            capacity = (now / full);
-        }
-        /* as last try we can use charge_full or charge_now */
-        else if (g_file_test(BATTERY_SYSFS_PATH "charge_full", G_FILE_TEST_EXISTS) &&
-                 g_file_test(BATTERY_SYSFS_PATH "charge_now", G_FILE_TEST_EXISTS))
-        {
-            if (FileGetInt(BATTERY_SYSFS_PATH "charge_full", &full) < 0)
-                return -1;
-
-            if (FileGetInt(BATTERY_SYSFS_PATH "charge_now", &now) < 0)
-                return -1;
-
-            capacity = (now / full);
-        }
-        else
-        {
-            return -1;
-        }
-    }
-
+            }
     return capacity;
 }
 /**
@@ -129,7 +118,7 @@ int battery_temperature(void)
 
     if (!g_file_test(BATTERY_SYSFS_PATH "temp", G_FILE_TEST_EXISTS) ||
         FileGetInt(BATTERY_SYSFS_PATH "temp", &temp) < 0)
-        return -1;
+        return 30;
 
     return temp;
 }
@@ -158,7 +147,13 @@ int battery_voltage(void)
  */
 int battery_current(void)
 {
-    return -1;
+    int current;
+
+    if (!g_file_test(BATTERY_SYSFS_PATH "current_now", G_FILE_TEST_EXISTS) ||
+        FileGetInt(BATTERY_SYSFS_PATH "current_now", &current) < 0)
+        return -1;
+
+    return current;
 }
 
 /**
