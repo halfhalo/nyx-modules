@@ -45,7 +45,7 @@ extern void *charger_status_callback_context;
 extern nyx_device_callback_function_t charger_status_callback;
 
 #define CHARGER_USB_SYSFS_PATH		"/sys/class/power_supply/usb/"
-#define CHARGER_AC_SYSFS_PATH		"/sys/class/power_supply/ac/"
+#define CHARGER_AC_SYSFS_PATH		"/sys/class/power_supply/ADP1/"
 
 nyx_charger_status_t gChargerStatus =
 {
