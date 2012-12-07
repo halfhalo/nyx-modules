@@ -59,6 +59,7 @@ int lookup_key(keys_device_t* d, uint16_t keyCode, int32_t keyValue,
         *key_type_out_ptr = NYX_KEY_TYPE_CUSTOM;
         break;
     default:
+        nyx_error("Error in matching key type");
         break;
     }
 
