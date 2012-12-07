@@ -176,8 +176,8 @@ double battery_full40(void)
 {
     int energy_full;
 
-    if (g_file_test(BATTERY_SYSFS_PATH "energy_full", G_FILE_TEST_EXISTS) &&
-        FileGetInt(BATTERY_SYSFS_PATH "energy_full", &energy_full) < 0)
+    if (g_file_test(BATTERY_SYSFS_PATH "charge_full", G_FILE_TEST_EXISTS) &&
+        FileGetInt(BATTERY_SYSFS_PATH "charge_full", &energy_full) < 0)
         return -1;
 
    return (double) energy_full;
