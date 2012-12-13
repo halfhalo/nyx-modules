@@ -104,12 +104,13 @@ static int FileWriteInt(const char *path, int value)
 static nyx_error_t handle_backlight_effect(nyx_device_handle_t handle, nyx_led_controller_effect_t effect)
 {
     int max_brightness;
-    int value, display_enabled;
+    int value;
+    char *display_enabled;
 
     switch(effect.required.effect)
     {
     case NYX_LED_CONTROLLER_EFFECT_LED_SET:
-        if (FileGetInt(DISPLAY_SYSFS_PATH "enabled", &display_enabled) < 0)
+        if (FileGetString(DISPLAY_SYSFS_PATH "enabled", &display_enabled) != "enabled")
             return NYX_ERROR_DEVICE_UNAVAILABLE;
 
         if (FileGetInt(BACKLIGHT_SYSFS_PATH "max_brightness", &max_brightness) < 0)
