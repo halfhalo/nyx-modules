@@ -56,7 +56,27 @@ nyx_error_t nyx_module_close (nyx_device_t* d)
     free(d);
     return NYX_ERROR_NONE;
 }
+static int FileGetString(const char *path, char *ret_string, size_t maxlen)
+{
+    GError *gerror = NULL;
+    char *contents = NULL;
+    gsize len;
 
+    if (!path || !g_file_get_contents(path, &contents, &len, &gerror)) {
+        if (gerror) {
+            nyx_critical( "%s: %s", __FUNCTION__, gerror->message);
+            g_error_free(gerror);
+        }
+        return -1;
+    }
+
+    g_strstrip(contents);
+    g_strlcpy(ret_string, contents, maxlen);
+
+    g_free(contents);
+
+    return 0;
+}
 static int FileGetInt(const char *path, int *ret_data)
 {
     GError *gerror = NULL;
