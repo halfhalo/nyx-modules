@@ -130,14 +130,15 @@ static nyx_error_t handle_backlight_effect(nyx_device_handle_t handle, nyx_led_c
     switch(effect.required.effect)
     {
     case NYX_LED_CONTROLLER_EFFECT_LED_SET:
+    /*
         if (FileGetString(DISPLAY_SYSFS_PATH "enabled", &display_enabled, 256) != "enabled")
             return NYX_ERROR_DEVICE_UNAVAILABLE;
 
         if (FileGetInt(BACKLIGHT_SYSFS_PATH "max_brightness", &max_brightness) < 0)
             return NYX_ERROR_DEVICE_UNAVAILABLE;
-
+    */
         value = (int)((max_brightness * effect.backlight.brightness_lcd) / 100.0);
-
+        /*
         if (display_enabled == 0 && value > 0)
         {
             if (FileWriteInt(DISPLAY_SYSFS_PATH "enabled", 1) < 0)
@@ -148,7 +149,7 @@ static nyx_error_t handle_backlight_effect(nyx_device_handle_t handle, nyx_led_c
             if (FileWriteInt(DISPLAY_SYSFS_PATH "enabled", 0) < 0)
                 return NYX_ERROR_DEVICE_UNAVAILABLE;
         }
-
+        */
         if (display_enabled == 1)
         {
             if (FileWriteInt(BACKLIGHT_SYSFS_PATH "brightness", value) < 0)

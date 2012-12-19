@@ -191,7 +191,14 @@ double battery_full40(void)
 
 double battery_rawcoulomb(void)
 {
-    return -1;
+    int energy;
+
+    if (g_file_test(BATTERY_SYSFS_PATH "charge_now", G_FILE_TEST_EXISTS) &&
+        FileGetInt(BATTERY_SYSFS_PATH "charge_now", &energy) < 0)
+        return -1;
+
+   return (double) energy;
+   
 }
 
 /**
@@ -202,7 +209,13 @@ double battery_rawcoulomb(void)
 
 double battery_coulomb(void)
 {
-    return -1;
+    int energy;
+
+    if (g_file_test(BATTERY_SYSFS_PATH "charge_now", G_FILE_TEST_EXISTS) &&
+        FileGetInt(BATTERY_SYSFS_PATH "charge_now", &energy) < 0)
+        return -1;
+
+   return (double) energy;
 }
 
 /**

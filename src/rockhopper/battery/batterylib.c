@@ -94,12 +94,12 @@ void battery_read_status(nyx_battery_status_t *state)
 			state->current = battery_current();
 			state->voltage = battery_voltage();
 			state->avg_current = battery_current();
-			state->capacity = battery_coulomb();
+			state->capacity = battery_rawcoulomb();
 			state->capacity_raw = battery_rawcoulomb();
 			state->capacity_full40 = battery_full40();
 			state->age=battery_age();
 			if (state->avg_current >  0)
-				state->charging = true;
+				state->charging = false;
 		}
 		else
 			state->charging = false;
