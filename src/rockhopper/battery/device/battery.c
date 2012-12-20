@@ -98,6 +98,7 @@ int battery_percent(void)
                    
                 
                 capacity = (now / full)*100;
+                nyx_error("Capacity: %d",capacity);
             }
             else
             {
