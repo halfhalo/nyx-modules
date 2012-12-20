@@ -97,7 +97,7 @@ int battery_percent(void)
                 }
                    
                 
-                capacity = (now / full);
+                capacity = (now / full)*100;
             }
             else
             {
