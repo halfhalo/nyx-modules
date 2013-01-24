@@ -141,20 +141,19 @@ int battery_voltage(void)
     udev_enumerate_add_match_sysattr(enumerate,"type","Battery");
     udev_enumerate_scan_devices(enumerate);
     devices = udev_enumerate_get_list_entry(enumerate);
-    udev_list_entry_get_next(dev_list_entry, devices) {
+    udev_list_entry_get_next(dev_list_entry, devices)
+    if(!dev_list_entry)
+    {
+        return -1;
+    } 
+    else
+    {
         const char *path;
 		path = udev_list_entry_get_name(dev_list_entry);
-		dev = udev_device_new_from_syspath(udev, path);
-        if(!dev)
-        {
-            voltage=-1;
-        }
-        else
-        {
-            voltage=udev_device_get_sysattr_value(dev,"voltage_now");
-        }
+		dev = udev_device_new_from_syspath(udev, path);     
+        voltage=udev_device_get_sysattr_value(dev,"voltage_now");         
+    }
         
-    };
     return voltage;
 }
 
