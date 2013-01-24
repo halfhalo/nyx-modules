@@ -80,32 +80,31 @@ int battery_percent(void)
 {
     int now, full;
     int capacity;
-    if (g_file_test(BATTERY_SYSFS_PATH "charge_full", G_FILE_TEST_EXISTS) &&
-                     g_file_test(BATTERY_SYSFS_PATH "charge_now", G_FILE_TEST_EXISTS))
-            {
-                if (FileGetInt(BATTERY_SYSFS_PATH "charge_full", &full) < 0)
-                {
-                    nyx_error("Could not read charge_full");
-                    return -1;
-                }
-                    
+    struct udev_enumerate *enumerate;
+    struct udev_list_entry *devices, *dev_list_entry;
+    struct udev_device *devy;
+	enumerate = udev_enumerate_new(udev);
+	udev_enumerate_add_match_subsystem(enumerate, "power_supply");
+    udev_enumerate_add_match_sysattr(enumerate,"type","Battery");
+    udev_enumerate_scan_devices(enumerate);
+    devices = udev_enumerate_get_list_entry(enumerate);
+    udev_list_entry_get_next(devices);
+    if(!dev_list_entry)
+    {
+        return -1;
+    } 
+    else
+    {
+        const char *path;
+		path = udev_list_entry_get_name(dev_list_entry);
+		devy = udev_device_new_from_syspath(udev, path);     
+        now=udev_device_get_sysattr_value(devy,"charge_now");
+        full=udev_device_get_sysattr_value(devy,"charge_full");
+        capacity = (now*100 / full);
+        nyx_error(" Now: %d Full :%d Capacity: %d",now,full,capacity);
+        udev_device_unref(devy);         
+    }
 
-                if (FileGetInt(BATTERY_SYSFS_PATH "charge_now", &now) < 0)
-                {
-                    nyx_error("Could not read charge_now");
-                    return -1; 
-                }
-                   
-                
-                capacity = (now*100 / full);
-                nyx_error(" Now: %d Full :%d Capacity: %d",now,full,capacity);
-            }
-            else
-            {
-                nyx_error("Charge full or Charge now does not exist");
-                
-                return -1;
-            }
     return capacity;
 }
 /**
@@ -167,9 +166,29 @@ int battery_current(void)
 {
     int current;
     
-    if (!g_file_test(BATTERY_SYSFS_PATH "current_now", G_FILE_TEST_EXISTS) ||
-        FileGetInt(BATTERY_SYSFS_PATH "current_now", &current) < 0)
+    struct udev_enumerate *enumerate;
+    struct udev_list_entry *devices, *dev_list_entry;
+    struct udev_device *devy;
+	enumerate = udev_enumerate_new(udev);
+	udev_enumerate_add_match_subsystem(enumerate, "power_supply");
+    udev_enumerate_add_match_sysattr(enumerate,"type","Battery");
+    udev_enumerate_scan_devices(enumerate);
+    devices = udev_enumerate_get_list_entry(enumerate);
+    udev_list_entry_get_next(devices);
+    if(!dev_list_entry)
+    {
         return -1;
+    } 
+    else
+    {
+        const char *path;
+		path = udev_list_entry_get_name(dev_list_entry);
+		devy = udev_device_new_from_syspath(udev, path);     
+        current=udev_device_get_sysattr_value(devy,"current_now");
+        udev_device_unref(devy);         
+    }
+        
+
 
     return current;
 }
