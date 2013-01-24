@@ -135,7 +135,7 @@ int battery_voltage(void)
     int voltage;
     struct udev_enumerate *enumerate;
     struct udev_list_entry *devices, *dev_list_entry;
-    udev_device *dev;
+    struct udev_device *devy;
 	enumerate = udev_enumerate_new(udev);
 	udev_enumerate_add_match_subsystem(enumerate, "power_supply");
     udev_enumerate_add_match_sysattr(enumerate,"type","Battery");
@@ -150,8 +150,8 @@ int battery_voltage(void)
     {
         const char *path;
 		path = udev_list_entry_get_name(dev_list_entry);
-		dev = udev_device_new_from_syspath(udev, path);     
-        voltage=udev_device_get_sysattr_value(dev,"voltage_now");         
+		devy = udev_device_new_from_syspath(udev, path);     
+        voltage=udev_device_get_sysattr_value(devy,"voltage_now");         
     }
         
     return voltage;
