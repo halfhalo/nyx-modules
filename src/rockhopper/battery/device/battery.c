@@ -133,11 +133,28 @@ int battery_temperature(void)
 int battery_voltage(void)
 {
     int voltage;
-
-    if (!g_file_test(BATTERY_SYSFS_PATH "voltage_now", G_FILE_TEST_EXISTS) ||
-        FileGetInt(BATTERY_SYSFS_PATH "voltage_now", &voltage) < 0)
-        return -1;
-
+    struct udev_enumerate *enumerate;
+    struct udev_list_entry *devices, *dev_list_entry;
+    udev_device *dev;
+	enumerate = udev_enumerate_new(udev);
+	udev_enumerate_add_match_subsystem(enumerate, "power_supply");
+    udev_enumerate_add_match_sysattr(enumerate,"type","Battery");
+    udev_enumerate_scan_devices(enumerate);
+    devices = udev_enumerate_get_list_entry(enumerate);
+    udev_list_entry_get_next(dev_list_entry, devices) {
+        const char *path;
+		path = udev_list_entry_get_name(dev_list_entry);
+		dev = udev_device_new_from_syspath(udev, path);
+        if(!dev)
+        {
+            voltage=-1;
+        }
+        else
+        {
+            voltage=udev_device_get_sysattr_value(dev,"voltage_now");
+        }
+        
+    };
     return voltage;
 }
 
@@ -149,7 +166,7 @@ int battery_voltage(void)
 int battery_current(void)
 {
     int current;
-
+    
     if (!g_file_test(BATTERY_SYSFS_PATH "current_now", G_FILE_TEST_EXISTS) ||
         FileGetInt(BATTERY_SYSFS_PATH "current_now", &current) < 0)
         return -1;
