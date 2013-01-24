@@ -88,7 +88,7 @@ int battery_percent(void)
     udev_enumerate_add_match_sysattr(enumerate,"type","Battery");
     udev_enumerate_scan_devices(enumerate);
     devices = udev_enumerate_get_list_entry(enumerate);
-    udev_list_entry_get_next(devices);
+    dev_list_entry=udev_list_entry_get_next(devices);
     if(!dev_list_entry)
     {
         return -1;
@@ -140,7 +140,7 @@ int battery_voltage(void)
     udev_enumerate_add_match_sysattr(enumerate,"type","Battery");
     udev_enumerate_scan_devices(enumerate);
     devices = udev_enumerate_get_list_entry(enumerate);
-    udev_list_entry_get_next(devices);
+    dev_list_entry=udev_list_entry_get_next(devices);
     if(!dev_list_entry)
     {
         return -1;
@@ -174,7 +174,7 @@ int battery_current(void)
     udev_enumerate_add_match_sysattr(enumerate,"type","Battery");
     udev_enumerate_scan_devices(enumerate);
     devices = udev_enumerate_get_list_entry(enumerate);
-    udev_list_entry_get_next(devices);
+    dev_list_entry=udev_list_entry_get_next(devices);
     if(!dev_list_entry)
     {
         return -1;
