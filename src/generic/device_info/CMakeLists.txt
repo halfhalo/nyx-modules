@@ -16,13 +16,8 @@
 #
 # LICENSE@@@
 
-# configuration file for qemuarm.
-# specify all the modules to be compiled
-
-set(MODULE_SYSTEM_WEBOS_LINUX			YES)
-set(MODULE_KEYS_WEBOS_LINUX			YES)
-set(MODULE_TOUCHPANEL_WEBOS_LINUX		YES)
-
-set(DEVICEINFO_PRODUCT_NAME			"ARMv5TE Emulator")
-
-add_definitions(-DKEYPAD_INPUT_DEVICE="/dev/input/keyboard0")
+if(${WEBOS_TARGET_MACHINE_IMPL} STREQUAL emulator)
+	webos_configure_source_files(SOURCE_FILES emulator/device_info_generic.c)
+	nyx_create_module(DeviceInfoMain ${SOURCE_FILES})
+	target_link_libraries(DeviceInfoMain ${LIBCRYPTO_LDFLAGS})
+endif()

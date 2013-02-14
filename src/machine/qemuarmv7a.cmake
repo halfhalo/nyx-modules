@@ -16,13 +16,14 @@
 #
 # LICENSE@@@
 
-# configuration file for qemuarm.
+# configuration file for qemuarmv7a.
 # specify all the modules to be compiled
 
 set(MODULE_SYSTEM_WEBOS_LINUX			YES)
 set(MODULE_KEYS_WEBOS_LINUX			YES)
 set(MODULE_TOUCHPANEL_WEBOS_LINUX		YES)
 
-set(DEVICEINFO_PRODUCT_NAME			"ARMv5TE Emulator")
+set(DEVICEINFO_PRODUCT_NAME			"ARMv7-A Emulator")
 
 add_definitions(-DKEYPAD_INPUT_DEVICE="/dev/input/keyboard0")
+

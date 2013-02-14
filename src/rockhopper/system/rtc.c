@@ -167,10 +167,11 @@ bool
 	rtc_add_watch(RtcAlarmFunc func)
 {
 #if DEV_RTC_IMPLEMENTED
-	if (!rtc_channel)
-    {
+
+	if(rtc_channel == NULL)
+	{
 		rtc_channel = g_io_channel_unix_new(rtc_fd);
-		rtc_watch = g_io_add_watch(rtc_channel, G_IO_IN, rtc_event, func);
+		g_io_add_watch(rtc_channel, G_IO_IN, rtc_event, func);
 		g_io_channel_unref(rtc_channel);
 	}
 	return true;
@@ -186,10 +187,14 @@ bool
 	if(rtc_channel) 
 	{
 		g_io_channel_shutdown(rtc_channel,true,NULL);
+<<<<<<< HEAD
 		rtc_channel = NULL;
 
 		g_source_remove(rtc_watch);
 
+=======
+		rtc_channel=NULL;
+>>>>>>> 784000778b5bba7fc193fcede866b44038b8fd39
 		rtc_close();
 	}
 	return true;
