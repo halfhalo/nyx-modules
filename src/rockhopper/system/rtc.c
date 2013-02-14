@@ -187,14 +187,8 @@ bool
 	if(rtc_channel) 
 	{
 		g_io_channel_shutdown(rtc_channel,true,NULL);
-<<<<<<< HEAD
-		rtc_channel = NULL;
 
-		g_source_remove(rtc_watch);
-
-=======
 		rtc_channel=NULL;
->>>>>>> 784000778b5bba7fc193fcede866b44038b8fd39
 		rtc_close();
 	}
 	return true;
