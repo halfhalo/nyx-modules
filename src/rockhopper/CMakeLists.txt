@@ -31,7 +31,10 @@ if(MODULE_KEYS_WEBOS_LINUX)
     add_subdirectory(keys)
 endif()
 
+if(MODULE_ALS_WEBOS_LINUX_TUNA)
+    add_subdirectory(als_tuna)
+endif()
+
 if(MODULE_LED_CONTROLLER_WEBOS_LINUX)
     add_subdirectory(led_controller)
 endif()
-

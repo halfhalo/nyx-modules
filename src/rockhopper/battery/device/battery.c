@@ -102,6 +102,7 @@ int battery_percent(void)
         capacity = (now*100 / full);
         nyx_error(" Now: %d Full :%d Capacity: %d",now,full,capacity);
         udev_device_unref(devy);         
+
     }
 
     return capacity;
@@ -117,7 +118,7 @@ int battery_temperature(void)
 
     if (!g_file_test(BATTERY_SYSFS_PATH "temp", G_FILE_TEST_EXISTS) ||
         FileGetInt(BATTERY_SYSFS_PATH "temp", &temp) < 0)
-        return 30;
+        return -1;
 
     return temp;
 }
@@ -232,7 +233,6 @@ double battery_rawcoulomb(void)
         return -1;
 
    return (double) energy;
-   
 }
 
 /**
