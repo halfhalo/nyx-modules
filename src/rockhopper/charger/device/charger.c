@@ -129,7 +129,7 @@ nyx_error_t _charger_read_status(nyx_charger_status_t *status)
 	if (nyx_utils_read_value(CHARGER_AC_SYSFS_PATH "online")) {
 		gChargerStatus.connected |= NYX_CHARGER_WALL_CONNECTED;
 		gChargerStatus.powered |= NYX_CHARGER_DIRECT_POWERED;
-		gChargerStatus.is_charging = 0;
+		gChargerStatus.is_charging = 1;
 	}
 
 	memcpy(status, &gChargerStatus, sizeof(nyx_charger_status_t));

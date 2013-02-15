@@ -28,14 +28,88 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <glib.h>
+#include <libudev.h>
 
 #include <nyx/nyx_module.h>
 #include <nyx/module/nyx_utils.h>
 
 NYX_DECLARE_MODULE(NYX_DEVICE_LED_CONTROLLER, "LedControllers");
 
+static const char *backlight_max_brightness_path = NULL;
+static const char *backlight_brightness_path = NULL;
+
+static const char* backlight_device_by_type(struct udev *udev, struct udev_list_entry *devices, const char *type)
+{
+    const char *path = NULL;
+    const char *device_type = NULL;
+    struct udev_list_entry *l;
+    struct udev_device *device;
+
+    for (l = devices; l != NULL; l = udev_list_entry_get_next(l)) {
+        device = udev_device_new_from_syspath(udev, udev_list_entry_get_name(l));
+        if (device == NULL)
+            continue;
+
+        device_type = udev_device_get_sysattr_value(device, "type");
+        if (g_strcmp0(device_type, type) == 0) {
+            path = g_strdup(udev_device_get_syspath(device));
+            udev_device_unref(device);
+            break;
+        }
+
+        udev_device_unref(device);
+    }
+
+    return path;
+}
+
+static const char* find_backlight_device(void)
+{
+    struct udev *udev;
+    struct udev_enumerate *enumerator;
+    struct udev_list_entry *devices;
+    const char *path = NULL;
+    struct udev_device *device;
+
+    udev = udev_new();
+    if (!udev) {
+        nyx_error("Could not initialize udev component");
+        return NULL;
+    }
+
+    enumerator = udev_enumerate_new(udev);
+    udev_enumerate_add_match_subsystem(enumerator, "backlight");
+    udev_enumerate_scan_devices(enumerator);
+
+    devices = udev_enumerate_get_list_entry(enumerator);
+    if (devices != NULL) {
+        path = backlight_device_by_type(udev, devices, "firmware");
+        if (path)
+            goto out;
+
+        path = backlight_device_by_type(udev, devices, "platform");
+        if (path)
+            goto out;
+
+        path = backlight_device_by_type(udev, devices, "raw");
+        if (path)
+            goto out;
+    }
+    else {
+        nyx_error("Did not found any devices matching the backlight subsystem");
+    }
+
+out:
+    udev_enumerate_unref(enumerator);
+    udev_unref(udev);
+
+    return path;
+}
+
 nyx_error_t nyx_module_open (nyx_instance_t i, nyx_device_t** d)
 {
+    const char *backlight_path = NULL;
+
     nyx_device_t *nyxDev = (nyx_device_t*)calloc(sizeof(nyx_device_t), 1);
     if (NULL == nyxDev)
         return NYX_ERROR_OUT_OF_MEMORY;
@@ -46,6 +120,15 @@ nyx_error_t nyx_module_open (nyx_instance_t i, nyx_device_t** d)
     nyx_module_register_method(i, (nyx_device_t*)nyxDev, NYX_LED_CONTROLLER_GET_STATE_MODULE_METHOD,
         "led_controller_get_state");
 
+    backlight_path = find_backlight_device();
+    if (!backlight_path) {
+        nyx_error("Could not find a valid backlight device");
+        return NYX_ERROR_DEVICE_UNAVAILABLE;
+    }
+
+    backlight_max_brightness_path = g_build_filename(backlight_path, "max_brightness", NULL);
+    backlight_brightness_path = g_build_filename(backlight_path, "brightness", NULL);
+
     *d = (nyx_device_t*)nyxDev;
 
     return NYX_ERROR_NONE;
@@ -54,29 +137,20 @@ nyx_error_t nyx_module_open (nyx_instance_t i, nyx_device_t** d)
 nyx_error_t nyx_module_close (nyx_device_t* d)
 {
     free(d);
-    return NYX_ERROR_NONE;
-}
-static int FileGetString(const char *path, char *ret_string, size_t maxlen)
-{
-    GError *gerror = NULL;
-    char *contents = NULL;
-    gsize len;
 
-    if (!path || !g_file_get_contents(path, &contents, &len, &gerror)) {
-        if (gerror) {
-            nyx_critical( "%s: %s", __FUNCTION__, gerror->message);
-            g_error_free(gerror);
-        }
-        return -1;
+    if (backlight_max_brightness_path) {
+        free(backlight_max_brightness_path);
+        backlight_max_brightness_path = 0;
     }
 
-    g_strstrip(contents);
-    g_strlcpy(ret_string, contents, maxlen);
+    if (backlight_brightness_path) {
+        free(backlight_brightness_path);
+        backlight_brightness_path = 0;
+    }
 
-    g_free(contents);
-
-    return 0;
+    return NYX_ERROR_NONE;
 }
+
 static int FileGetInt(const char *path, int *ret_data)
 {
     GError *gerror = NULL;
@@ -123,38 +197,21 @@ static int FileWriteInt(const char *path, int value)
 
 static nyx_error_t handle_backlight_effect(nyx_device_handle_t handle, nyx_led_controller_effect_t effect)
 {
-    int max_brightness;
-    int value;
-    char *display_enabled;
+    int max_brightness, brightness;
+    int value, display_enabled;
 
     switch(effect.required.effect)
     {
     case NYX_LED_CONTROLLER_EFFECT_LED_SET:
-    /*
-        if (FileGetString(DISPLAY_SYSFS_PATH "enabled", &display_enabled, 256) != "enabled")
+        if (FileGetInt(backlight_max_brightness_path, &max_brightness) < 0)
             return NYX_ERROR_DEVICE_UNAVAILABLE;
 
-        if (FileGetInt(BACKLIGHT_SYSFS_PATH "max_brightness", &max_brightness) < 0)
+        value = 0;
+        if (effect.backlight.brightness_lcd >= 0)
+            value = (int)((max_brightness * effect.backlight.brightness_lcd) / 100.0);
+
+        if (FileWriteInt(backlight_brightness_path, value) < 0)
             return NYX_ERROR_DEVICE_UNAVAILABLE;
-    */
-        value = (int)((max_brightness * effect.backlight.brightness_lcd) / 100.0);
-        /*
-        if (display_enabled == 0 && value > 0)
-        {
-            if (FileWriteInt(DISPLAY_SYSFS_PATH "enabled", 1) < 0)
-                return NYX_ERROR_DEVICE_UNAVAILABLE;
-        }
-        else if (display_enabled == 1 && value <= 0)
-        {
-            if (FileWriteInt(DISPLAY_SYSFS_PATH "enabled", 0) < 0)
-                return NYX_ERROR_DEVICE_UNAVAILABLE;
-        }
-        */
-        if (display_enabled == 1)
-        {
-            if (FileWriteInt(BACKLIGHT_SYSFS_PATH "brightness", value) < 0)
-                return NYX_ERROR_DEVICE_UNAVAILABLE;
-        }
 
         break;
     default:
@@ -181,14 +238,14 @@ nyx_error_t led_controller_execute_effect(nyx_device_handle_t handle, nyx_led_co
 
 nyx_error_t led_controller_get_state(nyx_device_handle_t handle, nyx_led_controller_led_t led, nyx_led_controller_state_t *state)
 {
-    int power = 0;
+    int brightness = 0;
 
     switch (led) {
     case NYX_LED_CONTROLLER_BACKLIGHT_LEDS:
-        if (FileGetInt(DISPLAY_SYSFS_PATH "bl_power", &power) < 0)
+        if (FileGetInt(backlight_brightness_path, &brightness) < 0)
             return NYX_ERROR_DEVICE_UNAVAILABLE;
 
-        *state = power ? NYX_LED_CONTROLLER_STATE_ON : NYX_LED_CONTROLLER_STATE_OFF;
+        *state = brightness > 0 ? NYX_LED_CONTROLLER_STATE_ON : NYX_LED_CONTROLLER_STATE_OFF;
 
         return NYX_ERROR_NONE;
     default:

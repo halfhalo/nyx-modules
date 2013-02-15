@@ -186,7 +186,7 @@ bool
 	if(rtc_channel) 
 	{
 		g_io_channel_shutdown(rtc_channel,true,NULL);
-		rtc_channel = NULL;
+		rtc_channel=NULL;
 
 		g_source_remove(rtc_watch);
 

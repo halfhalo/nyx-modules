@@ -17,3 +17,4 @@
 # LICENSE@@@
 
 add_subdirectory(display)
+add_subdirectory(device_info)
