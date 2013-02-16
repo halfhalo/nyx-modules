@@ -336,7 +336,7 @@ init_touchpanel(void)
 #endif
 
     	
-	touchpanel_event_fd = open("/dev/input/touchscreen0", O_RDWR | O_NONBLOCK);
+	touchpanel_event_fd = open("/dev/input/event5", O_RDWR | O_NONBLOCK);
 	if(touchpanel_event_fd < 0) {
 		nyx_error("Error in opening touchpanel event device");
 		return -1;
