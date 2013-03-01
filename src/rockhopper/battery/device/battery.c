@@ -78,7 +78,7 @@ nyx_battery_ctia_t *get_battery_ctia_params(void)
  */
 int battery_percent(void)
 {
-    int now, full;
+    unsigned long now,full;
     int capacity;
     struct udev_enumerate *enumerate;
     struct udev_list_entry *devices, *dev_list_entry;
@@ -97,8 +97,8 @@ int battery_percent(void)
         const char *path;
 		path = udev_list_entry_get_name(dev_list_entry);
 		devy = udev_device_new_from_syspath(udev, path);     
-        now=udev_device_get_sysattr_value(devy,"charge_now");
-        full=udev_device_get_sysattr_value(devy,"charge_full");
+        now= strtoul (udev_device_get_sysattr_value(devy,"charge_now"), NULL, 10);
+        full= strtoul (udev_device_get_sysattr_value(devy,"charge_full"), NULL, 10);
         capacity = (now*100 / full);
         nyx_error(" Now: %d Full :%d Capacity: %d",now,full,capacity);
         udev_device_unref(devy);         
