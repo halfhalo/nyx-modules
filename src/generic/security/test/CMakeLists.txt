@@ -1,6 +1,6 @@
 # @@@LICENSE
 #
-#      Copyright (c) 2010-2013 Hewlett-Packard Development Company, L.P.
+#      Copyright (c) 2013 Hewlett-Packard Development Company, L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,15 +16,5 @@
 #
 # LICENSE@@@
 
-cmake_minimum_required(VERSION 2.8.7)
-
-project(nyx-modules)
-
-include(webOS/webOS)
-webos_modules_init(1 0 0 QUALIFIER RC4)
-webos_component(5 0 0)
-
-add_subdirectory(src)
-
-install(FILES files/conf/99-nyx-modules.rules DESTINATION ${WEBOS_INSTALL_SYSCONFDIR}/udev/rules.d)
-
+add_executable(test_security test_security.c)
+target_link_libraries(test_security ${NYXLIB_LDFLAGS} ${GLIB2_LDFLAGS} ${SSL_LDFLAGS} -lrt -lpthread)

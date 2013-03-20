@@ -25,6 +25,7 @@
 #include <sys/un.h>
 #include <linux/input.h>
 #include <linux/ioctl.h>
+#include <linux/fb.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -323,7 +324,27 @@ static general_settings_t sGeneralSettings =
 	.fingerDownThreshold = 0
 };
 
-static float scaleX, scaleY;
+#define FRAMEBUF_DEVICE_NAME    "/dev/fb"
+
+static int
+get_display_res(int* x, int* y)
+{
+	int ret = -1;
+	struct fb_var_screeninfo varinfo;
+
+	int displayFd = open(FRAMEBUF_DEVICE_NAME, O_RDONLY);
+	if (displayFd < 0)
+	{
+		nyx_error("Error in opening fb file");
+		return ret;
+	}
+
+	if (ioctl(displayFd, FBIOGET_VSCREENINFO, &varinfo) < 0)
+	{
+		nyx_error("Error in getting var screen info");
+		goto exit;
+	}
+
 
 static int
 init_touchpanel(void)
@@ -334,6 +355,7 @@ init_touchpanel(void)
 	struct fb_var_screeninfo scr_info;
 	int16_t fd;
 #endif
+
 
     	
 	touchpanel_event_fd = open("/dev/input/event5", O_RDWR | O_NONBLOCK);
@@ -399,6 +421,7 @@ init_touchpanel(void)
 			mt_slots[iSlot].nyx_finger = -1;
 		}
 	}
+
 
 	return 0;
 error:
