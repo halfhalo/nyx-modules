@@ -25,7 +25,6 @@
 #include <sys/un.h>
 #include <linux/input.h>
 #include <linux/ioctl.h>
-#include <linux/fb.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -324,27 +323,7 @@ static general_settings_t sGeneralSettings =
 	.fingerDownThreshold = 0
 };
 
-#define FRAMEBUF_DEVICE_NAME    "/dev/fb"
-
-static int
-get_display_res(int* x, int* y)
-{
-	int ret = -1;
-	struct fb_var_screeninfo varinfo;
-
-	int displayFd = open(FRAMEBUF_DEVICE_NAME, O_RDONLY);
-	if (displayFd < 0)
-	{
-		nyx_error("Error in opening fb file");
-		return ret;
-	}
-
-	if (ioctl(displayFd, FBIOGET_VSCREENINFO, &varinfo) < 0)
-	{
-		nyx_error("Error in getting var screen info");
-		goto exit;
-	}
-
+static float scaleX, scaleY;
 
 static int
 init_touchpanel(void)
@@ -355,7 +334,6 @@ init_touchpanel(void)
 	struct fb_var_screeninfo scr_info;
 	int16_t fd;
 #endif
-
 
     	
 	touchpanel_event_fd = open("/dev/input/event5", O_RDWR | O_NONBLOCK);
@@ -421,7 +399,6 @@ init_touchpanel(void)
 			mt_slots[iSlot].nyx_finger = -1;
 		}
 	}
-
 
 	return 0;
 error:
@@ -646,7 +623,7 @@ static void handle_new_event(input_event_t *event)
 	// Truncate scaled X & Y coordinate values
 	if ((event->type == EV_ABS) && (event->code == ABS_X))
 			cachedX = (int) (event->value * scaleX);
-		
+
 	else if ((event->type == EV_ABS) && (event->code == ABS_Y))
 			cachedY = (int) (event->value * scaleY);
 	// qemu touchpanel sends BTN_TOUCH, virtualbox touchpanel sends BTN_LEFT
@@ -668,7 +645,7 @@ static void handle_new_event(input_event_t *event)
 	 {
 	       	generate_mouse_gesture(touchButtonState);
 	 }
-	
+
         nyx_debug("[touchpanel] cachedX = %d, cachedY = %d", cachedX, cachedY);
 
 	 if ((event->type == EV_REL && event->code == REL_WHEEL) ||
@@ -698,7 +675,7 @@ read_input_event(void)
 	int numEvents = 0;
 	int rd = 0;
 	input_event_t pEvent;
-	
+
 	fds[0].fd = touchpanel_event_fd;
 	fds[0].events = POLLIN;
 
